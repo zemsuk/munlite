@@ -1,6 +1,6 @@
 {
-    "name": "zems/munlite",
-    "description": "Munlite is lite weight php framework",
+    "name": "zems/dena_pawna",
+    "description": "Dena pawna is a petty cash project for personal transaction",
     "type": "project",
     "license": "MIT",
     "autoload": {
@@ -11,7 +11,7 @@
     },
     "authors": [
         {
-            "name": "hossainZamir"
+            "name": "naz"
         }
     ],
     "minimum-stability": "dev",

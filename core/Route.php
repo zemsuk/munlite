@@ -8,6 +8,7 @@ class Route
     public static $cMethod = "GET";
     public function __construct() {
         self::$cMethod = $_SERVER['REQUEST_METHOD'];
+        // $this->dispatch();
     }
     private static function addRoute($route, $controller, $action, $method)
     {
@@ -41,12 +42,21 @@ class Route
     public static function dispatch()
     {
         $uri = strtok($_SERVER['REQUEST_URI'], '?');
+       
         $method =  $_SERVER['REQUEST_METHOD'];
         // return self::resolveParams();
         $uri = rtrim($uri, "/");
         if($uri == ""){
             $uri = "/";
         }
+        if(str_contains($uri, '/api/')){
+            $uri = str_replace("/api/","/",$uri);
+        }
+        // var_dump($uri);
+        // var_dump(self::$routes[$method]);
+        // echo "<hr>";
+        // var_dump($_SERVER["REQUEST_URI"]);
+        // exit(); 
         if (array_key_exists($uri, self::$routes[$method])) {
             $controller = self::$routes[$method][$uri]['controller'];
             $action = self::$routes[$method][$uri]['action'];
@@ -55,28 +65,36 @@ class Route
         } else {
             self::resolveParams();
             if(self::$ckParams  == false){
-                throw new \Exception("No route found for URI: $uri");
+                var_dump(self::$routes[$method]);
+                throw new \Exception("No route found for URI: $uri <br>");
             }
         }
     }
     
     public static function resolveParams()  {
         $requestMethod = $_SERVER['REQUEST_METHOD'];
+        self::$cMethod = $requestMethod;
         if(isset($_POST["_method"])){
             $requestMethod = strtoupper($_POST["_method"]);
             self::$cMethod = $requestMethod;
         }
-        foreach(self::$routes as $k=>$route){
-            self::route_back($k);
-        }
-
-        // self::route_back('GET');
+        // foreach(self::$routes as $k=>$route){
+           
+        //     self::route_back($k);
+        // }
+        self::route_back(self::$cMethod);
         // self::route_back('POST');
     }
     public static function route_back($requestMethod) {
         $uri = strtok($_SERVER['REQUEST_URI'], '?');
         $method =  $_SERVER['REQUEST_METHOD'];
         $uri = rtrim($uri, "/");
+        if($uri == ""){
+            $uri = "/";
+        }
+        if(str_contains($uri, '/api/')){
+            $uri = str_replace("/api/","/",$uri);
+        }
         $var_route = [];
         $routeParams = null;
         
@@ -100,6 +118,7 @@ class Route
                 
                 $controller = new $controller;
                 self::$ckParams = true;
+                
                 return call_user_func_array(array($controller, $action), $routeParams);
             } 
         }
