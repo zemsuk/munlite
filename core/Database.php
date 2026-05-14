@@ -8,12 +8,22 @@ class Database
     public $user = DB_USERNAME;
     public $pass = DB_PASSWORD;
     public $database = DB_DATABASE;
+
+    protected static $instance = null;
+
+    public static function getInstance(): Database
+    {
+        if (self::$instance === null) {
+            self::$instance = new self();
+        }
+        return self::$instance;
+    }
+
     public function __construct()
     {
         try {
             $this->conn = new PDO("mysql:host=" . $this->host . ";dbname=" . $this->database, $this->user, $this->pass);
             $this->conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-            // echo "Connected successfully!!";
         } catch (\PDOException $e) {
             echo "Connection failed: " . $e->getMessage();
         }

@@ -1,29 +1,26 @@
 <?php
 namespace App;
-use Zems\Database;
-class Model extends Database
+use Zems\BaseModel;
+class Model extends BaseModel
 {
-    protected $table;
+    protected static $table;
+    protected static $pk = 'id';
 
-    public function __construct()
-    {
-        parent::__construct();
-    }
+    // public static function get()
+    // {
+    //     $table = static::$table ?: strtolower(basename(str_replace('\\', '/', static::class)));
+    //     $db = self::getInstance();
+    //     $stmt = $db->conn->prepare("SELECT * FROM $table");
+    //     $stmt->execute();
+    //     return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+    // }
 
-    public function get()
-    {
-        $table = $this->table ?: strtolower(basename(str_replace('\\', '/', static::class)));
-
-        $stmt = $this->conn->prepare("SELECT * FROM $table");
-        $stmt->execute();
-        return $stmt->fetchAll(\PDO::FETCH_ASSOC);
-    }
-
-    public function find($id)
-    {
-        $table = $this->table ?: strtolower(basename(str_replace('\\', '/', static::class)));
-        $stmt = $this->conn->prepare("SELECT * FROM $table WHERE id = ?");
-        $stmt->execute([$id]);
-        return $stmt->fetch(\PDO::FETCH_ASSOC);
-    }
+    // public static function find($id)
+    // {
+    //     $table = static::$table ?: strtolower(basename(str_replace('\\', '/', static::class)));
+    //     $db = self::getInstance();
+    //     $stmt = $db->conn->prepare("SELECT * FROM $table WHERE id = ?");
+    //     $stmt->execute([$id]);
+    //     return $stmt->fetch(\PDO::FETCH_ASSOC);
+    // }
 }
