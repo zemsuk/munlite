@@ -3,12 +3,19 @@
 namespace App\dashboard;
 
 use App\Controller;
-use App\Models\User;
+use App\Auth\Models\User;
 
 class DashboardController extends Controller
 {
     public function index()
     {
-        $this->view('dashboard/views/dashboard');
+        // session_start();
+        if (!isset($_SESSION['user_id'])) {
+            header('Location: /login');
+            exit;
+        }
+
+        $user = User::find($_SESSION['user_id']);
+        return view('Dashboard/views/dashboard', ['user' => $user]);
     }
 }

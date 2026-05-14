@@ -2,6 +2,13 @@
 namespace App;
 class Controller
 {
+    public function __construct()
+    {
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+    }
+
     protected function view($view, $data = [])
     {
         extract($data);
