@@ -9,6 +9,10 @@ class BaseModel extends Database
     protected static $selectColumns = ['*'];
     protected static $orderBy = null;
     protected static $orderDirection = 'ASC';
+    protected static $groupBy = null;
+    protected static $limit = null;
+    protected static $offset = null;
+    protected static $joins = [];
 
     public static function query()
     {
@@ -16,6 +20,10 @@ class BaseModel extends Database
         static::$selectColumns = ['*'];
         static::$orderBy = null;
         static::$orderDirection = 'ASC';
+        static::$groupBy = null;
+        static::$limit = null;
+        static::$offset = null;
+        static::$joins = [];
         return new static;
     }
 
@@ -35,6 +43,186 @@ class BaseModel extends Database
         static::$orderBy = $column;
         static::$orderDirection = strtoupper($direction);
         return new static;
+    }
+
+    public static function groupBy($column)
+    {
+        static::$groupBy = $column;
+        return new static;
+    }
+
+    public static function join($table, $first, $operator, $second, $type = 'INNER')
+    {
+        static::$joins[] = [
+            'type' => $type,
+            'table' => $table,
+            'first' => $first,
+            'operator' => $operator,
+            'second' => $second
+        ];
+        return new static;
+    }
+
+    public static function leftJoin($table, $first, $operator, $second)
+    {
+        return static::join($table, $first, $operator, $second, 'LEFT');
+    }
+
+    public static function rightJoin($table, $first, $operator, $second)
+    {
+        return static::join($table, $first, $operator, $second, 'RIGHT');
+    }
+
+    public static function limit($value)
+    {
+        static::$limit = $value;
+        return new static;
+    }
+
+    public static function offset($value)
+    {
+        static::$offset = $value;
+        return new static;
+    }
+
+    public static function count($column = '*')
+    {
+        $table = static::getTable();
+        $db = self::getInstance();
+        $where = '';
+        $values = [];
+
+        if (!empty(static::$conditions)) {
+            foreach (static::$conditions as $i => $cond) {
+                $connector = ($i > 0) ? $cond['type'] . ' ' : '';
+                if (isset($cond['raw'])) {
+                    $where .= $connector . $cond['raw'];
+                    $values = array_merge($values, $cond['value']);
+                } else {
+                    $where .= $connector . "{$cond['column']} {$cond['operator']} ?";
+                    $values[] = $cond['value'];
+                }
+            }
+            $where = " WHERE " . $where;
+        }
+
+        $sql = "SELECT COUNT($column) as result FROM $table$where";
+        $stmt = $db->conn->prepare($sql);
+        $stmt->execute($values);
+        static::query();
+        return $stmt->fetch(\PDO::FETCH_ASSOC)['result'];
+    }
+
+    public static function max($column)
+    {
+        $table = static::getTable();
+        $db = self::getInstance();
+        $where = '';
+        $values = [];
+
+        if (!empty(static::$conditions)) {
+            foreach (static::$conditions as $i => $cond) {
+                $connector = ($i > 0) ? $cond['type'] . ' ' : '';
+                if (isset($cond['raw'])) {
+                    $where .= $connector . $cond['raw'];
+                    $values = array_merge($values, $cond['value']);
+                } else {
+                    $where .= $connector . "{$cond['column']} {$cond['operator']} ?";
+                    $values[] = $cond['value'];
+                }
+            }
+            $where = " WHERE " . $where;
+        }
+
+        $sql = "SELECT MAX($column) as result FROM $table$where";
+        $stmt = $db->conn->prepare($sql);
+        $stmt->execute($values);
+        static::query();
+        return $stmt->fetch(\PDO::FETCH_ASSOC)['result'];
+    }
+
+    public static function min($column)
+    {
+        $table = static::getTable();
+        $db = self::getInstance();
+        $where = '';
+        $values = [];
+
+        if (!empty(static::$conditions)) {
+            foreach (static::$conditions as $i => $cond) {
+                $connector = ($i > 0) ? $cond['type'] . ' ' : '';
+                if (isset($cond['raw'])) {
+                    $where .= $connector . $cond['raw'];
+                    $values = array_merge($values, $cond['value']);
+                } else {
+                    $where .= $connector . "{$cond['column']} {$cond['operator']} ?";
+                    $values[] = $cond['value'];
+                }
+            }
+            $where = " WHERE " . $where;
+        }
+
+        $sql = "SELECT MIN($column) as result FROM $table$where";
+        $stmt = $db->conn->prepare($sql);
+        $stmt->execute($values);
+        static::query();
+        return $stmt->fetch(\PDO::FETCH_ASSOC)['result'];
+    }
+
+    public static function avg($column)
+    {
+        $table = static::getTable();
+        $db = self::getInstance();
+        $where = '';
+        $values = [];
+
+        if (!empty(static::$conditions)) {
+            foreach (static::$conditions as $i => $cond) {
+                $connector = ($i > 0) ? $cond['type'] . ' ' : '';
+                if (isset($cond['raw'])) {
+                    $where .= $connector . $cond['raw'];
+                    $values = array_merge($values, $cond['value']);
+                } else {
+                    $where .= $connector . "{$cond['column']} {$cond['operator']} ?";
+                    $values[] = $cond['value'];
+                }
+            }
+            $where = " WHERE " . $where;
+        }
+
+        $sql = "SELECT AVG($column) as result FROM $table$where";
+        $stmt = $db->conn->prepare($sql);
+        $stmt->execute($values);
+        static::query();
+        return $stmt->fetch(\PDO::FETCH_ASSOC)['result'];
+    }
+
+    public static function sum($column)
+    {
+        $table = static::getTable();
+        $db = self::getInstance();
+        $where = '';
+        $values = [];
+
+        if (!empty(static::$conditions)) {
+            foreach (static::$conditions as $i => $cond) {
+                $connector = ($i > 0) ? $cond['type'] . ' ' : '';
+                if (isset($cond['raw'])) {
+                    $where .= $connector . $cond['raw'];
+                    $values = array_merge($values, $cond['value']);
+                } else {
+                    $where .= $connector . "{$cond['column']} {$cond['operator']} ?";
+                    $values[] = $cond['value'];
+                }
+            }
+            $where = " WHERE " . $where;
+        }
+
+        $sql = "SELECT SUM($column) as result FROM $table$where";
+        $stmt = $db->conn->prepare($sql);
+        $stmt->execute($values);
+        static::query();
+        return $stmt->fetch(\PDO::FETCH_ASSOC)['result'];
     }
 
     public static function where($column, $operator = null, $value = null)
@@ -113,6 +301,14 @@ class BaseModel extends Database
         $db = self::getInstance();
         $columns = implode(', ', static::$selectColumns);
         $order = static::$orderBy ? " ORDER BY " . static::$orderBy . " " . static::$orderDirection : '';
+        $group = static::$groupBy ? " GROUP BY " . static::$groupBy : '';
+        $limit = static::$limit ? " LIMIT " . static::$limit : '';
+        $offset = static::$offset ? " OFFSET " . static::$offset : '';
+
+        $joins = '';
+        foreach (static::$joins as $join) {
+            $joins .= " {$join['type']} JOIN {$join['table']} ON {$join['first']} {$join['operator']} {$join['second']}";
+        }
 
         if (!empty(static::$conditions)) {
             $where = '';
@@ -127,11 +323,11 @@ class BaseModel extends Database
                     $values[] = $cond['value'];
                 }
             }
-            $sql = "SELECT $columns FROM $table WHERE $where$order";
+            $sql = "SELECT $columns FROM $table$joins WHERE $where$group$order$limit$offset";
             $stmt = $db->conn->prepare($sql);
             $stmt->execute($values);
         } else {
-            $sql = "SELECT $columns FROM $table$order";
+            $sql = "SELECT $columns FROM $table$joins$group$order$limit$offset";
             $stmt = $db->conn->prepare($sql);
             $stmt->execute();
         }
@@ -140,6 +336,10 @@ class BaseModel extends Database
         static::$selectColumns = ['*'];
         static::$orderBy = null;
         static::$orderDirection = 'ASC';
+        static::$groupBy = null;
+        static::$limit = null;
+        static::$offset = null;
+        static::$joins = [];
         return $stmt->fetchAll(\PDO::FETCH_ASSOC);
     }
 
@@ -149,6 +349,13 @@ class BaseModel extends Database
         $db = self::getInstance();
         $columns = implode(', ', static::$selectColumns);
         $order = static::$orderBy ? " ORDER BY " . static::$orderBy . " " . static::$orderDirection : '';
+        $group = static::$groupBy ? " GROUP BY " . static::$groupBy : '';
+        $offset = static::$offset ? " OFFSET " . static::$offset : '';
+
+        $joins = '';
+        foreach (static::$joins as $join) {
+            $joins .= " {$join['type']} JOIN {$join['table']} ON {$join['first']} {$join['operator']} {$join['second']}";
+        }
 
         if (!empty(static::$conditions)) {
             $where = '';
@@ -163,11 +370,11 @@ class BaseModel extends Database
                     $values[] = $cond['value'];
                 }
             }
-            $sql = "SELECT $columns FROM $table WHERE $where$order LIMIT 1";
+            $sql = "SELECT $columns FROM $table$joins WHERE $where$group$order LIMIT 1$offset";
             $stmt = $db->conn->prepare($sql);
             $stmt->execute($values);
         } else {
-            $sql = "SELECT $columns FROM $table$order LIMIT 1";
+            $sql = "SELECT $columns FROM $table$joins$group$order LIMIT 1$offset";
             $stmt = $db->conn->prepare($sql);
             $stmt->execute();
         }
@@ -176,6 +383,10 @@ class BaseModel extends Database
         static::$selectColumns = ['*'];
         static::$orderBy = null;
         static::$orderDirection = 'ASC';
+        static::$groupBy = null;
+        static::$limit = null;
+        static::$offset = null;
+        static::$joins = [];
         return $stmt->fetch(\PDO::FETCH_ASSOC);
     }
 
@@ -195,24 +406,64 @@ class BaseModel extends Database
         return $db->conn->lastInsertId();
     }
 
-    public static function update($id, array $data)
+    public static function update(array $data)
     {
         $table = static::getTable();
         $set = implode(' = ?, ', array_keys($data)) . ' = ?';
         $db = self::getInstance();
-        $stmt = $db->conn->prepare("UPDATE $table SET $set WHERE id = ?");
         $values = array_values($data);
-        $values[] = $id;
+
+        if (!empty(static::$conditions)) {
+            $where = '';
+            foreach (static::$conditions as $i => $cond) {
+                $connector = ($i > 0) ? $cond['type'] . ' ' : '';
+                if (isset($cond['raw'])) {
+                    $where .= $connector . $cond['raw'];
+                    $values = array_merge($values, $cond['value']);
+                } else {
+                    $where .= $connector . "{$cond['column']} {$cond['operator']} ?";
+                    $values[] = $cond['value'];
+                }
+            }
+            $sql = "UPDATE $table SET $set WHERE $where";
+        } else {
+            $sql = "UPDATE $table SET $set";
+        }
+
+        $stmt = $db->conn->prepare($sql);
         $stmt->execute($values);
-        return $stmt->rowCount();
+        $count = $stmt->rowCount();
+        static::query();
+        return $count;
     }
 
-    public static function delete($id)
+    public static function delete()
     {
         $table = static::getTable();
         $db = self::getInstance();
-        $stmt = $db->conn->prepare("DELETE FROM $table WHERE id = ?");
-        $stmt->execute([$id]);
-        return $stmt->rowCount();
+        $values = [];
+
+        if (!empty(static::$conditions)) {
+            $where = '';
+            foreach (static::$conditions as $i => $cond) {
+                $connector = ($i > 0) ? $cond['type'] . ' ' : '';
+                if (isset($cond['raw'])) {
+                    $where .= $connector . $cond['raw'];
+                    $values = array_merge($values, $cond['value']);
+                } else {
+                    $where .= $connector . "{$cond['column']} {$cond['operator']} ?";
+                    $values[] = $cond['value'];
+                }
+            }
+            $sql = "DELETE FROM $table WHERE $where";
+        } else {
+            $sql = "DELETE FROM $table";
+        }
+
+        $stmt = $db->conn->prepare($sql);
+        $stmt->execute($values);
+        $count = $stmt->rowCount();
+        static::query();
+        return $count;
     }
 }

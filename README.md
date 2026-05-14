@@ -53,6 +53,34 @@ Content::orderBy('id', 'DESC')->get();
 Content::where('status', 1)->orderBy('title', 'ASC')->get();
 ```
 
+### Group By
+```php
+Content::select('type', 'COUNT(*) as total')->groupBy('type')->get();
+```
+
+### Limit & Offset (Pagination)
+```php
+Content::orderBy('id', 'DESC')->limit(10)->offset(0)->get();
+```
+
+### Join
+```php
+User::select('user.id', 'user.name', 'content.title')
+    ->leftJoin('content', 'user.id', '=', 'content.user_id')
+    ->get();
+```
+
+### Aggregate Functions
+```php
+Content::count();
+Content::count('id');
+Content::where('status', 1)->count();
+Content::max('id');
+Content::min('id');
+Content::avg('id');
+Content::sum('id');
+```
+
 ### Create Record
 ```php
 Content::create([
@@ -65,15 +93,20 @@ Content::create([
 
 ### Update Record
 ```php
-Content::update(1, [
+Content::where('id', 1)->update([
     'title' => 'Updated Title',
     'details' => 'Updated details'
+]);
+
+Content::where('status', 0)->update([
+    'status' => 1
 ]);
 ```
 
 ### Delete Record
 ```php
-Content::delete(1);
+Content::where('id', 1)->delete();
+Content::where('status', 0)->delete();
 ```
 
 ### Chained Example
@@ -82,5 +115,13 @@ Content::select('id', 'title', 'details')
     ->where('status', 1)
     ->whereIn('type', ['news', 'blog'])
     ->orderBy('id', 'DESC')
+    ->limit(10)
     ->get();
+```
+
+### Raw Queries in whereIn/whereBetween
+```php
+Content::whereIn('id', [1, 2, 3])->get();
+Content::orWhereIn('id', [4, 5, 6])->get();
+Content::whereBetween('id', [1, 10])->get();
 ```

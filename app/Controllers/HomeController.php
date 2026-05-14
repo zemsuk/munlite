@@ -12,19 +12,15 @@ class HomeController extends Controller
     {
         $content = new Content();
         $contents = $content->select('id', 'title', 'details')->orderBy('id', 'desc')->get();
-        echo "<pre>";
-        var_dump($contents);
-        echo "</pre>";
-        return view('Controllers/view/index');
+
+        return view('Controllers/view/index', ['contents' => $contents]);
     }
     public function about()
     {
         $cus = new Content();
-        $cus = $cus::where('type', 'news')->find(11);
-        echo "<pre>";
-        var_dump($cus);
-        echo "</pre>";
-        return view('Controllers/view/index');
+        $contents = $cus::where('type', 'news')->find(11);
+
+        return view('Controllers/view/about', ['contents' => $contents]);
     }
     public function allUser()
     {
@@ -38,11 +34,8 @@ class HomeController extends Controller
 
     public function service()
     {
-        $users = User::where('status', 1)->orWhere('phone', '016')->get();
-        echo "<pre>";
-        var_dump($users);
-        echo "</pre>";
-        return view('Controllers/view/index');
+        $users = Content::where('status', 1)->orWhere('type', 'news')->get();
+        return view('Controllers/view/service/index', ['users' => $users]);
     }
 
     public function seedContent()
@@ -75,18 +68,113 @@ class HomeController extends Controller
     public function whereIn()
     {
         $contents = Content::whereIn('id', [1, 2, 3, 4, 5])->get();
-        echo "<pre>";
-        var_dump($contents);
-        echo "</pre>";
-        return view('Controllers/view/index');
+        return view('Controllers/view/service/whereIn', ['contents' => $contents]);
     }
 
     public function whereBetween()
     {
         $contents = Content::whereBetween('id', [1, 5])->get();
-        echo "<pre>";
-        var_dump($contents);
-        echo "</pre>";
-        return view('Controllers/view/index');
+        return view('Controllers/view/service/whereBetween', ['contents' => $contents]);
+    }
+
+    public function createContent()
+    {
+        return view('Controllers/view/service/createContent');
+    }
+
+    public function storeContent()
+    {
+        $data = [
+            'title' => $_POST['title'] ?? '',
+            'details' => $_POST['details'] ?? '',
+            'type' => $_POST['type'] ?? 'news',
+            'status' => $_POST['status'] ?? 1
+        ];
+
+        Content::create($data);
+        header('Location: /create-content?success=1');
+        exit;
+    }
+
+    public function editContent()
+    {
+        $id = $_GET['id'] ?? 0;
+        $content = Content::find($id);
+        return view('Controllers/view/service/editContent', ['content' => $content]);
+    }
+
+    public function updateContent()
+    {
+        $id = $_POST['id'] ?? 0;
+        $data = [
+            'title' => $_POST['title'] ?? '',
+            'details' => $_POST['details'] ?? '',
+            'type' => $_POST['type'] ?? 'news',
+            'status' => $_POST['status'] ?? 1
+        ];
+
+        Content::where('id', $id)->update($data);
+        header('Location: /');
+        exit;
+    }
+
+    public function deleteContent()
+    {
+        $id = $_GET['id'] ?? 0;
+        Content::where('id', $id)->delete();
+        header('Location: /');
+        exit;
+    }
+
+    public function groupBy()
+    {
+        $contents = Content::select('type', 'COUNT(*) as total')
+            ->groupBy('type')
+            ->get();
+        return view('Controllers/view/service/groupBy', ['contents' => $contents]);
+    }
+
+    public function pagination()
+    {
+        $page = $_GET['page'] ?? 1;
+        $perPage = 5;
+        $offset = ($page - 1) * $perPage;
+
+        $contents = Content::orderBy('id', 'DESC')
+            ->limit($perPage)
+            ->offset($offset)
+            ->get();
+
+        return view('Controllers/view/service/pagination', ['contents' => $contents, 'page' => $page]);
+    }
+
+    public function join()
+    {
+        $results = User::select('user.id', 'user.name', 'user.email', 'content.title as post_title')
+            ->leftJoin('content', 'user.id', '=', 'content.id')
+            ->orderBy('user.id', 'DESC')
+            ->limit(10)
+            ->get();
+
+        return view('Controllers/view/service/join', ['results' => $results]);
+    }
+
+    public function aggregate()
+    {
+        $totalUsers = User::count();
+        $totalContent = Content::where('type', 'news')->count();
+        $maxId = Content::max('id');
+        $minId = Content::min('id');
+        $avgId = Content::avg('id');
+
+        $data = [
+            'totalUsers' => $totalUsers,
+            'totalContent' => $totalContent,
+            'maxId' => $maxId,
+            'minId' => $minId,
+            'avgId' => round($avgId, 2),
+        ];
+
+        return view('Controllers/view/service/aggregate', ['data' => $data]);
     }
 }
